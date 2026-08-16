@@ -13,6 +13,7 @@
 ## Coding conventions
 - Follow existing project style and standard Java formatting.
 - Prefer immutable local variables and keep method scope small and readable.
+- Prefer Java record classes over traditional DTO classes with getters and setters when immutability and data-carrying semantics are appropriate.
 - Use Spring and JDK libraries before introducing new dependencies.
 - Avoid premature abstraction; add new layers or utilities only when they clearly improve maintainability.
 - Keep configuration in `application.properties` or dedicated configuration classes.
