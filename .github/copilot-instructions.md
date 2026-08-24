@@ -19,6 +19,7 @@
 - Follow standard Java style and Spring Boot idioms.
 - Prefer clear, small methods over large multi-purpose methods.
 - Use immutable local variables (`final`) where practical.
+- Prefer Java `record` classes over traditional DTO classes with getters and setters when immutability and data-carrying semantics are appropriate.
 - Avoid wildcard imports.
 - Add Javadoc only for non-obvious public APIs; keep comments meaningful and concise.
 
