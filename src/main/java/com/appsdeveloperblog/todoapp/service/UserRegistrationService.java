@@ -28,7 +28,15 @@ public class UserRegistrationService {
 		final UserAccount userAccount = new UserAccount(registrationForm.getFirstName().trim(),
 				registrationForm.getLastName().trim(), normalizedEmailAddress,
 				passwordEncoder.encode(registrationForm.getPassword()));
-		return userAccountRepository.save(userAccount);
+		try {
+			return userAccountRepository.save(userAccount);
+		}
+		catch (final org.springframework.dao.DataIntegrityViolationException exception) {
+			if (userAccountRepository.existsByEmailAddress(normalizedEmailAddress)) {
+				throw new DuplicateEmailException("An account with this email address already exists");
+			}
+			throw exception;
+		}
 	}
 
 	private String normalizeEmailAddress(final String emailAddress) {
