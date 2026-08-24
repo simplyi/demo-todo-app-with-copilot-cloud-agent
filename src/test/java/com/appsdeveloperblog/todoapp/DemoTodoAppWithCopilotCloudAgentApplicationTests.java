@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
@@ -58,10 +59,11 @@ class DemoTodoAppWithCopilotCloudAgentApplicationTests {
 				.andExpect(redirectedUrl("/register"));
 
 		final UserAccount savedUser = userAccountRepository.findByEmailAddress("taylor@example.com").orElseThrow();
+		final String storedPasswordHash = (String) ReflectionTestUtils.getField(savedUser, "password");
 		assertThat(savedUser.getFirstName()).isEqualTo("Taylor");
 		assertThat(savedUser.getLastName()).isEqualTo("Jones");
-		assertThat(savedUser.getPassword()).isNotEqualTo("Password123!");
-		assertThat(passwordEncoder.matches("Password123!", savedUser.getPassword())).isTrue();
+		assertThat(storedPasswordHash).isNotEqualTo("Password123!");
+		assertThat(passwordEncoder.matches("Password123!", storedPasswordHash)).isTrue();
 	}
 
 	@Test
