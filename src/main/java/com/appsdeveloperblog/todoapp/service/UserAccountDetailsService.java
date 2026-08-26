@@ -20,10 +20,11 @@ public class UserAccountDetailsService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
-		return userAccountRepository.findByEmailAddress(username)
+		final String normalizedEmailAddress = username.trim().toLowerCase(java.util.Locale.ROOT);
+		return userAccountRepository.findByEmailAddress(normalizedEmailAddress)
 				.map(account -> new User(account.getEmailAddress(), account.getPassword(),
 						List.of(new SimpleGrantedAuthority("ROLE_USER"))))
-				.orElseThrow(() -> new UsernameNotFoundException("No account found for email: " + username));
+				.orElseThrow(() -> new UsernameNotFoundException("No account found for email: " + normalizedEmailAddress));
 	}
 
 }

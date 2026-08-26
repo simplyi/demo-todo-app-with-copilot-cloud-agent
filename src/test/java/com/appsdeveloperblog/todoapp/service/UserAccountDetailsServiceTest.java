@@ -26,13 +26,13 @@ class UserAccountDetailsServiceTest {
 
 	@Test
 	void loadUserByUsernameReturnsUserDetailsForKnownEmail() {
-		final UserAccount account = new UserAccount("Taylor", "Jones", "taylor@example.com", "{bcrypt}hashedpassword");
+		final UserAccount account = new UserAccount("Taylor", "Jones", "taylor@example.com", "encodedPassword");
 		when(userAccountRepository.findByEmailAddress("taylor@example.com")).thenReturn(Optional.of(account));
 
 		final UserDetails userDetails = userAccountDetailsService.loadUserByUsername("taylor@example.com");
 
 		assertThat(userDetails.getUsername()).isEqualTo("taylor@example.com");
-		assertThat(userDetails.getPassword()).isEqualTo("{bcrypt}hashedpassword");
+		assertThat(userDetails.getPassword()).isEqualTo("encodedPassword");
 		assertThat(userDetails.getAuthorities()).hasSize(1);
 		assertThat(userDetails.getAuthorities().iterator().next().getAuthority()).isEqualTo("ROLE_USER");
 	}
