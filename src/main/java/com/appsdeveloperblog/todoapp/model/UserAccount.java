@@ -53,4 +53,8 @@ public class UserAccount {
 		return emailAddress;
 	}
 
+	public String getPassword() {
+		return password;
+	}
+
 }
