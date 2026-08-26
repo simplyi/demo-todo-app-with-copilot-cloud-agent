@@ -1,6 +1,7 @@
 package com.appsdeveloperblog.todoapp;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -49,7 +50,7 @@ class DemoTodoAppWithCopilotCloudAgentApplicationTests {
 	void successfulRegistrationCreatesEncodedUserAccount() throws Exception {
 		userAccountRepository.deleteAll();
 
-		mockMvc.perform(post("/register")
+		mockMvc.perform(post("/register").with(csrf())
 				.param("firstName", "Taylor")
 				.param("lastName", "Jones")
 				.param("emailAddress", "taylor@example.com")
@@ -70,7 +71,7 @@ class DemoTodoAppWithCopilotCloudAgentApplicationTests {
 	void registrationRejectsMismatchedPasswords() throws Exception {
 		userAccountRepository.deleteAll();
 
-		mockMvc.perform(post("/register")
+		mockMvc.perform(post("/register").with(csrf())
 				.param("firstName", "Taylor")
 				.param("lastName", "Jones")
 				.param("emailAddress", "taylor@example.com")
@@ -86,7 +87,7 @@ class DemoTodoAppWithCopilotCloudAgentApplicationTests {
 	void registrationRejectsMissingAndInvalidFields() throws Exception {
 		userAccountRepository.deleteAll();
 
-		mockMvc.perform(post("/register")
+		mockMvc.perform(post("/register").with(csrf())
 				.param("firstName", "")
 				.param("lastName", "")
 				.param("emailAddress", "invalid-email")
@@ -106,7 +107,7 @@ class DemoTodoAppWithCopilotCloudAgentApplicationTests {
 	void registrationRejectsDuplicateEmailAddress() throws Exception {
 		userAccountRepository.deleteAll();
 
-		mockMvc.perform(post("/register")
+		mockMvc.perform(post("/register").with(csrf())
 				.param("firstName", "Taylor")
 				.param("lastName", "Jones")
 				.param("emailAddress", "taylor@example.com")
@@ -114,7 +115,7 @@ class DemoTodoAppWithCopilotCloudAgentApplicationTests {
 				.param("passwordConfirmation", "Password123!"))
 				.andExpect(status().is3xxRedirection());
 
-		mockMvc.perform(post("/register")
+		mockMvc.perform(post("/register").with(csrf())
 				.param("firstName", "Jordan")
 				.param("lastName", "Smith")
 				.param("emailAddress", "TAYLOR@example.com")
@@ -124,6 +125,49 @@ class DemoTodoAppWithCopilotCloudAgentApplicationTests {
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("An account with this email address already exists")));
 
 		assertThat(userAccountRepository.count()).isEqualTo(1);
+	}
+
+	@Test
+	void loginPageIsAccessibleWithoutAuthentication() throws Exception {
+		mockMvc.perform(get("/login"))
+				.andExpect(status().isOk())
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Email address")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Password")));
+	}
+
+	@Test
+	void unauthenticatedAccessToProtectedRouteRedirectsToLogin() throws Exception {
+		mockMvc.perform(get("/some-protected-page"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/login"));
+	}
+
+	@Test
+	void loginWithValidCredentialsRedirectsToHome() throws Exception {
+		userAccountRepository.deleteAll();
+
+		mockMvc.perform(post("/register").with(csrf())
+				.param("firstName", "Alex")
+				.param("lastName", "Brown")
+				.param("emailAddress", "alex@example.com")
+				.param("password", "Password123!")
+				.param("passwordConfirmation", "Password123!"))
+				.andExpect(status().is3xxRedirection());
+
+		mockMvc.perform(post("/login").with(csrf())
+				.param("emailAddress", "alex@example.com")
+				.param("password", "Password123!"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/"));
+	}
+
+	@Test
+	void loginWithInvalidCredentialsRedirectsToLoginWithError() throws Exception {
+		mockMvc.perform(post("/login").with(csrf())
+				.param("emailAddress", "nobody@example.com")
+				.param("password", "wrongpassword"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/login?error"));
 	}
 
 }
